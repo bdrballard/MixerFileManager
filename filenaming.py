@@ -83,13 +83,16 @@ def convertYear(input_year):
     new_year = input_year[year_length-2:year_length]
     return new_year
 
-#  The method 'getFrameLabel' reads the specified csv file
+#  The method 'getnewfilename' reads the row information
+#  from the header
 #  and creates a file name for storing that file.
-def getFrameLabel(input_file):
+def getnewfilename(master_header):
 
-    print("$frame label input file_:%s" % input_file + globals.RAW_FILE_NAME)
-    csv_data = csv.reader(open(input_file + globals.RAW_FILE_NAME))
-    master_header = next(csv_data)
+    #print("$frame label input file_:%s" % input_file + globals.RAW_FILE_NAME)
+    #csv_data = csv.reader(open(input_file + globals.RAW_FILE_NAME))
+    #master_header = next(csv_data)
+
+
     machine_sn = master_header[1]
     day_of_week = master_header[2]
     month_and_day = master_header[3]
@@ -107,6 +110,7 @@ def getFrameLabel(input_file):
     print("++ converted day:%s" % the_day)
     standard_time = convertTime(time)
     print ("++ converted time: %s" % standard_time)
-    new_frame_label = globals.EQUIPMENT_DESIGNATOR + the_month + the_day + the_year + standard_time
+    new_frame_label = globals.EQUIPMENT_DESIGNATOR() + the_month + the_day + the_year + standard_time
     print("--new frame label:%s" % new_frame_label)
-    return new_frame_label
+    new_filename = globals.NEW_FRAME_FILE_PATH() + new_frame_label + '.csv'
+    return new_filename

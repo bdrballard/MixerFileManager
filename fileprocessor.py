@@ -1,10 +1,11 @@
 import csv
 import pandas as pd
-
-
-
+import sys
+import globals
+from MixerFileManager.filenaming import getnewfilename
 
 def foundheader(input_file, record_number):
+    print("IN:foundheader")
     # This method returns true if the record_number
     # is a header, otherwise it returns false
     fields = []
@@ -25,8 +26,9 @@ def foundheader(input_file, record_number):
         else:
             return False
 
+# TODO this method is not used
 def copyrecord(input_file, output_file):
-    print("copyrecord is running")# This method copies the specified row of data
+    print("IN:copyrecord")# This method copies the specified row of data
     # from the source csv file to a destination file
     fields = []
     rows = []
@@ -39,9 +41,123 @@ def copyrecord(input_file, output_file):
             line = f1.readline()
 
 
+# the retrieveheaderrow method retrieves the specified record (by row number)
+# from a csv file.
+
+def retrieveheaderrow(input_file, row_number):
+    print("IN:retrieveheaderrow")# This method retrieves the real header row
+    fields = []
+    rows = []
+    record_number = 0
+    file = open(input_file)
+
+    # read the content of the file opened
+
+    with open(input_file, 'r', encoding="latin-1") as f:
+        lines = f.readlines()
+    for line in lines[1:]:
+        words = line.split()
+        if words[0] =='Machine':
+            print("IN:printing words")
+            print("word[0]:%s" % words[0])
+            print("word[1]:%s" % words[1])
+            print("word[2]:%s" % words[2])
+            print("word[3]:%s" % words[3])
+            print("word[4]:%s" % words[4])
+            print("length of word 1:%s" % len(words[1]))
+            print(words[1][3:5])
+            mac_end = words[1][0:2]         #sn tag - fixed length = 2 chars
+            msn = words[0] + ' ' + mac_end  #'machine sn label'     = 10 chars
+            l1 = len(words[1])
+            sn = words[1][3:13]             #serial number  Fixed Length - 10 chars
+            dow =words[1][14:l1-1]          #day of week  -VARIABLE
+            mnth = words[2]                 #month - VARIABLE
+            l3 = len(words[3])
+            print("length of word 3:%s" % len(words[3]))
+            if len(words[3]) == 15:          # single digit dom
+                dom = words[3][0:1]         #day of month -VARIABLE
+                year = words[3][2:6]        #year
+                time = words[3][7:15]       #time
+            else:
+                dom = words[3][0:2]         # day of month -VARIABLE
+                year = words[3][3:7]        # year
+                time = words[3][8:16]       # time
+            apm = words[4]                  #am or pm
+            print("summarizing:")
+            print (msn)
+            print (sn)
+            print(dow)
+            print(mnth)
+            print (dom)
+            print (year)
+            print (time)
+            print (apm)
+
+            #print(words)
+
+    # print first 3 lines of file
+    #print("first three lines")
+    #print(content[0:3])
+        #print(f1.readlines()[252:253])
+        #l1 = f1.readlines()[252:253]
+
+
+
+# this method returns the time tag information from
+# the header that is used to create the new
+# csv filename.  The time tag is the header record
+# for the frame in the csv file.
+#  TODO:  Look at including this method as part of the readcsv
+#  method.  There is a duplication of functions here.
+
+def getcsvtimetag(input_file):
+    print("IN:getcvstimetag")
+    csv_data = csv.reader(open(input_file))
+    # header_list will contain the line numbers for
+    # the first header row in csv_data file.
+    # initializing the titles and rows list
+    fields = []
+    rows = []
+    line_count = 0
+    timetag_list = []
+    # reading csv file
+    with open(input_file, 'r') as csvfile:
+        # creating a csv reader object
+        csvreader = csv.reader(csvfile)
+        # extracting field names through first row
+        fields = next(csvreader)
+        print("printing the first header row")
+        print(fields)  # print the first header row
+        # extracting each data row one by one
+        for row in csvreader:
+            if line_count == 0:
+                line_count = line_count + 1
+                timetag_list.append(fields)
+            else:
+                # print(row)
+                line_count = line_count + 1
+                if row[0] == 'Machine Sn':
+                    print("line_number:%d" % line_count)
+                    print(row)
+                    timetag_list.append(row)
+
+
+        # get total number of rows
+        print("timetag_list follows:")
+        print(timetag_list)
+        last_row = csvreader.line_num
+        #print("$$$$header_list:%s" % header_list)
+        #print("last row is:%d" % last_row)
+        print("end of getcsvtimetag")
+    return timetag_list
+
+
+# The readcsvfile method reads the complete raw cvs
+# file and determines header row locations and time tag
+# locations where are stored in lists that can be popped off
 
 def readcsvfile (input_file):
-
+    print("IN:readcsvfile")
     csv_data = csv.reader(open(input_file))
 
     # header_list will contain the line numbers for
@@ -59,7 +175,8 @@ def readcsvfile (input_file):
 
         # extracting field names through first row
         fields = next(csvreader)
-        #print(fields)  #print the first header row
+        print("printing the first header row")
+        print(fields)  #print the first header row
         #line_count=line_count + 1
         # extracting each data row one by one
 
@@ -76,22 +193,29 @@ def readcsvfile (input_file):
                 line_count = line_count + 1
                 if row[0] == 'Machine Sn':
                     header_list.append(line_count)
-                    #print("line_number:%d" % line_count)
-                    #print(row)
+                    print("line_number:%d" % line_count)
+                    print(row)
                 #line_number = line_count + 1
     # get total number of rows
 
         last_row = csvreader.line_num
-        #print("$$$$header_list:%s" % header_list)
-        #print("last row is:%d" % last_row)
+        print("$$$$header_list:%s" % header_list)
+        print("last row is:%d" % last_row)
         #add last row to the header_list
-        #header_list.append(last_row)
+        header_list.append(last_row)
+        print("printing header_list")
+        print(header_list)
         print("end of readcsvfile")
     return header_list
 # printing the field names
 #print('Field names are:' + ', '.join(field for field in fields))
 
-def readfirstframe(input_file, header_list):
+# The readfirstframe method processes the first frame in
+# the raw input file.  This is necessary because of the way
+# header information is used in the subsequent data frames.
+
+def readfirstframe(input_file, header_list, new_filename):
+    print("IN:readfirstframe")
     end_row = header_list[1]
     csv_data = csv.reader(open(input_file))
     line_count = 0
@@ -100,7 +224,7 @@ def readfirstframe(input_file, header_list):
     rows = []
 
     # reading csv file
-    with open('/Users/danballard/Desktop/2111190013.csv', 'r') as csvfile, open('/Users/danballard/Desktop/bat.csv', 'a') as csvfileout:
+    with open('/Users/danballard/Desktop/2111190013.csv', 'r') as csvfile, open(new_filename, 'a') as csvfileout:
         # creating a csv reader object
         csvreader = csv.reader(csvfile)
         print(fields)  # print the first header row
@@ -113,7 +237,7 @@ def readfirstframe(input_file, header_list):
                 csvfileout.write('\n')
                 line_count = line_count + 1
             else:
-                if line_count < end_row-1:
+                if line_count < end_row:
                         print(row)
                         csvfileout.write(','.join(map(str, row)))
                         csvfileout.write('\n')
@@ -124,73 +248,74 @@ def readfirstframe(input_file, header_list):
         print("end of readfirstframe")
     return header_list
 
-def readcsvframes (input_file, header_list):
-    print ("readcsvframes header list:%s" % header_list)
 
-
-    #get next start address and end address from the header list
+#  The readcsvframes method reads all subsequent frames and processes
+#  them to get the correct header information written to the output file.
+def readcsvframes (input_file, header_list, timetag_list):
+    print("readcsvframes header list:%s" % header_list)
+    print("timetag list")
+    print(timetag_list)
+    # get next start address and end address from the header list
     # if there is only one entry in the header list then this is
     # the last dataframe and the end
-    start_row= header_list.pop(0)
-    end_row = header_list.pop(0)
-    print("start_row:%d" % start_row)
-    print ("end_row:%d" % end_row)
-    csv_data = csv.reader(open(input_file))
-    line_count = start_row
-    # initializing the titles and rows list
-    fields = []
-    rows = []
+    # TODO Test with larger file sets
+    while len(header_list) > 0:
 
-    # reading csv file
-    with open('/Users/danballard/Desktop/2111190013.csv', 'r') as csvfile, open('/Users/danballard/Desktop/batout.csv', 'a') as csvfileout:
-            # creating a csv reader object
-        csvreader = csv.reader(csvfile)
-        print(csvfile.readlines())
+        next_timetag = timetag_list.pop(0)
+        print("next_timetag")
+        print(next_timetag)
+        new_filename = getnewfilename(next_timetag)
+        print("new filename:%s" % new_filename)
 
-        # extracting field names through first row
-        #fields = next(csvreader)
-        #print(fields)  # print the first header row
-        #csvfileout.write(', '.join(map(str, fields)))
-        for row in csvreader:
-            # print('/n')
-                #if line_count < start_row:
-                #print(f' Column names are {",".join(row)}')
-                #column_names = ','.join(map(str, row))
-                #csvfileout.write(column_names)
-                #csvfileout.write('\n')
-                #next(csvreader)
-                #line_count = line_count + 1
-            #elif line_count >= start_row and line_count < end_row-1:
-                #print(row)
-                #csvfileout.write(','.join(map(str, row)))
-                #csvfileout.write('\n')
-                #next(csvreader)
-                #line_count = line_count + 1
-        #print ("end of readcvsframe")
-        #return
-            return
+        #TODO Test with larger file sets
+        start_row = header_list.pop(0)
+        end_row = header_list.pop(0)
+        print("start_row:%d" % start_row)
+        print("end_row:%d" % end_row)
 
+        #TODO remove blank Nan lines in input file
+        input_filename = globals.RAW_FILE_PATH() + globals.RAW_FILE_NAME()
+        # Read the csv file
+        df = pd.read_csv(input_filename, skiprows=start_row, nrows=end_row-start_row)
+        print("printing df")
+        print(df)
+        # write to the output file
+        df.to_csv(new_filename)
+    return
+# TODO test calls are located here and should be moved to the
+# calling programs.
+#
+# TODO:  Change definition below to use with global representations.
 input_file = '/Users/danballard/Desktop/2111190013.csv'
 output_file = '/Users/danballard/Desktop/bar.csv'
+
+#  read the csv file completely to find the data frames contain in it.
+
 header_list =readcsvfile(input_file)
 print(header_list)
-start_row= header_list.pop(0)
-#print(pd.read_csv(input_file, index_col=1, nrows=1).columns.tolist())
-df1 = pd.read_csv(input_file)
-#list_size = len(df1)
-#print("list_size:%d" % list_size)
-#while start_row < list_size-2:
-    #print("####start_row:%d" % start_row)
-    #end_row = header_list.pop(0)
-    #print("####end_row:%d" % end_row)
-    #df2 = df1.iloc[start_row:end_row-1, :]
-    #print(df1.head())  # make the csv file here
-    #xdate = df2.iloc[start_row:start_row, 5:]
-    #print (xdate)
-    #start_row = end_row
-    #print("@@@@@start_row:%d" % start_row)
 
-#print(df1)
 
-df2 =df1.iloc[252:800,: ]
-print(df2)
+# read the first dataframe and process it
+# this method returns the modified header list
+# along with the timetag information used for
+# creating output filenames.
+#header_list = readfirstframe(input_file, header_list)
+print("header list from readcsvfile")
+print(header_list)
+timetag_list = getcsvtimetag(input_file)
+print("timetag_list")
+print(timetag_list)
+timetag = timetag_list.pop(0)
+print ("timetag:")
+new_filename = getnewfilename(timetag)
+print("new filename")
+print(new_filename)
+readfirstframe(input_file, header_list, new_filename)
+
+readcsvframes(input_file, header_list, timetag_list)
+
+
+#stop for now
+print("stopping!")
+sys.exit(0)
+
