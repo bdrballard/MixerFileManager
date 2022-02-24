@@ -2,7 +2,7 @@ import csv
 import pandas as pd
 import sys
 import globals
-from MixerFileManager.filenaming import getnewfilename
+from filenaming import getnewfilename
 
 def foundheader(input_file, record_number):
     print("IN:foundheader")
