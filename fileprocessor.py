@@ -3,6 +3,8 @@ import pandas as pd
 import sys
 import globals
 from filenaming import getnewfilename
+from filenaming import convertTime
+from filenaming import convertMonth
 
 def foundheader(input_file, record_number):
     print("IN:foundheader")
@@ -41,39 +43,27 @@ def copyrecord(input_file, output_file):
             line = f1.readline()
 
 
-# the retrieveheaderrow method retrieves the specified record (by row number)
-# from a csv file.
+# the retrieveheadertimetag method retrieves the first row
+# from a .csv file and creates a timetag for that row.
 
-def retrieveheaderrow(input_file, row_number):
-    print("IN:retrieveheaderrow")# This method retrieves the real header row
+def retrieveheadertimetag(input_file):
     fields = []
     rows = []
     record_number = 0
     file = open(input_file)
 
     # read the content of the file opened
-
     with open(input_file, 'r', encoding="latin-1") as f:
         lines = f.readlines()
     for line in lines[1:]:
         words = line.split()
         if words[0] =='Machine':
-            print("IN:printing words")
-            print("word[0]:%s" % words[0])
-            print("word[1]:%s" % words[1])
-            print("word[2]:%s" % words[2])
-            print("word[3]:%s" % words[3])
-            print("word[4]:%s" % words[4])
-            print("length of word 1:%s" % len(words[1]))
-            print(words[1][3:5])
             mac_end = words[1][0:2]         #sn tag - fixed length = 2 chars
             msn = words[0] + ' ' + mac_end  #'machine sn label'     = 10 chars
             l1 = len(words[1])
             sn = words[1][3:13]             #serial number  Fixed Length - 10 chars
             dow =words[1][14:l1-1]          #day of week  -VARIABLE
             mnth = words[2]                 #month - VARIABLE
-            l3 = len(words[3])
-            print("length of word 3:%s" % len(words[3]))
             if len(words[3]) == 15:          # single digit dom
                 dom = words[3][0:1]         #day of month -VARIABLE
                 year = words[3][2:6]        #year
@@ -83,24 +73,12 @@ def retrieveheaderrow(input_file, row_number):
                 year = words[3][3:7]        # year
                 time = words[3][8:16]       # time
             apm = words[4]                  #am or pm
-            print("summarizing:")
-            print (msn)
-            print (sn)
-            print(dow)
-            print(mnth)
-            print (dom)
-            print (year)
-            print (time)
-            print (apm)
-
-            #print(words)
-
-    # print first 3 lines of file
-    #print("first three lines")
-    #print(content[0:3])
-        #print(f1.readlines()[252:253])
-        #l1 = f1.readlines()[252:253]
-
+            if(len(dom) == 1):  dom ='0'+dom
+            monthnr = convertMonth(mnth)
+            mtime = time + ' ' + apm
+            miltime = convertTime(mtime)
+            datetime = monthnr + dom + year + miltime
+            return datetime
 
 
 # this method returns the time tag information from
@@ -181,6 +159,7 @@ def readcsvfile (input_file):
         # extracting each data row one by one
 
         for row in csvreader:
+            if len(row[0]) < 1:print("Big fat error")
             #rows.append(row)
             #print(row)              #print the entire row
             #print(row[0])           #print specified column data in that row
@@ -282,6 +261,8 @@ def readcsvframes (input_file, header_list, timetag_list):
         # write to the output file
         df.to_csv(new_filename)
     return
+
+
 # TODO test calls are located here and should be moved to the
 # calling programs.
 #
@@ -289,6 +270,9 @@ def readcsvframes (input_file, header_list, timetag_list):
 input_file = '/Users/danballard/Desktop/2111190013.csv'
 output_file = '/Users/danballard/Desktop/bar.csv'
 
+xtime =retrieveheadertimetag(input_file)
+
+sys.exit(0)
 #  read the csv file completely to find the data frames contain in it.
 
 header_list =readcsvfile(input_file)

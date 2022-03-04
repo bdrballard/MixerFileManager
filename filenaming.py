@@ -16,7 +16,6 @@ def findMonth(month_and_day):
 # month into a new numeric value.  This value is used in constructing
 # the file name for a mixer data file.
 def convertMonth(case):
-    print("convertMonth case:%s" % case)
     if case == 'January':
         return '01'
     elif case == 'February':
@@ -65,7 +64,6 @@ def convertTime (input_time: object) -> object:
         new_time = new_time.replace(':', '')
         time_length = len(new_time)
         new_time = new_time[0:time_length-1]
-        print ("######:new_time%s" % new_time)
         return new_time
     else:       # then it is PM time so add 12 hours
         new_time = input_time[0: time_length - 2]
@@ -87,12 +85,6 @@ def convertYear(input_year):
 #  from the header
 #  and creates a file name for storing that file.
 def getnewfilename(master_header):
-
-    #print("$frame label input file_:%s" % input_file + globals.RAW_FILE_NAME)
-    #csv_data = csv.reader(open(input_file + globals.RAW_FILE_NAME))
-    #master_header = next(csv_data)
-
-
     machine_sn = master_header[1]
     day_of_week = master_header[2]
     month_and_day = master_header[3]
